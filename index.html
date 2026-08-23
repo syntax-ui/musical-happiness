@@ -667,7 +667,7 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
 .admin-table td.product-name-cell { white-space: normal; min-width: 220px; }
 .admin-note { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 20px; }
 .admin-table-wrap { background: var(--paper); border-radius: 8px; overflow-x: auto; box-shadow: var(--shadow-sm); }
-.admin-table { width: 100%; border-collapse: collapse; min-width: 720px; }
+.admin-table { width: 100%; border-collapse: collapse; min-width: 920px; }
 .admin-table th, .admin-table td { padding: 14px 16px; text-align: left; font-size: 0.85rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
 .admin-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); }
 .status-select { padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); }
@@ -1453,11 +1453,12 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
         </div>
       </div>
       <div id="adminProductsPanel" role="tabpanel" hidden>
-        <p class="admin-note">Edit price, stock, photo, or visibility. Changes save automatically. Adding a brand-new product still needs a quick message to Claude.</p>
+        <p class="admin-note">Edit any field, upload a real photo, add brand-new items, or remove ones you no longer carry — everything here saves automatically.</p>
+        <button class="btn btn-primary" id="adminAddProduct" style="margin-bottom:16px;">+ Add New Product</button>
         <div class="admin-table-wrap">
           <table class="admin-table" id="adminProductsTable">
             <thead>
-              <tr><th>Photo</th><th>Product</th><th>Price (₦)</th><th>Stock</th><th>Visible</th></tr>
+              <tr><th>Photo</th><th>Name</th><th>Category</th><th>Gender</th><th>Section</th><th>Price (₦)</th><th>Stock</th><th>Visible</th><th></th></tr>
             </thead>
             <tbody id="adminProductsBody"></tbody>
           </table>
@@ -2952,7 +2953,17 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
           body: JSON.stringify({ messages: history.slice(-10) })
         });
         typingEl.remove();
-        const data = await res.json();
+        if (!res.ok) {
+          addBubble(`DEBUG: function returned HTTP ${res.status} (${res.statusText}). This usually means the function isn't deployed at the right path, or it crashed.`, "bot");
+          return;
+        }
+        let data;
+        try {
+          data = await res.json();
+        } catch (parseErr) {
+          addBubble(`DEBUG: got a response but it wasn't valid JSON (status ${res.status}) — the function likely isn't returning what's expected, or Netlify served a fallback page instead of running it.`, "bot");
+          return;
+        }
         if (data.error) {
           addBubble(data.message || "Sorry, something went wrong. Please try again.", "bot");
           return;
@@ -2961,7 +2972,7 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
         history.push({ role: "assistant", content: data.reply });
       } catch (e) {
         typingEl.remove();
-        addBubble("Couldn't reach the shop assistant — please check your connection, or reach us directly using the contact details in the footer.", "bot");
+        addBubble(`DEBUG: request itself failed — "${e.message}". Usually a network/CORS issue, or the function path is wrong.`, "bot");
       }
     }
     function openChat() {
@@ -3073,6 +3084,12 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
       ? `<img class="admin-photo-thumb" src="${url}" alt="">`
       : `<div class="admin-photo-thumb empty">No photo</div>`;
   }
+  const PRODUCT_TYPES = ["top", "bottom", "outerwear", "dress", "shoes", "bag", "accessory"];
+  const PRODUCT_GENDERS = ["men", "women", "unisex"];
+  const PRODUCT_SECTIONS = ["flash", "new", "trending", "best"];
+  function selectHtml(field, id, current, options, label) {
+    return `<select class="product-edit-input" data-field="${field}" data-id="${id}" aria-label="${label}">${options.map((o) => `<option value="${o}" ${o === current ? "selected" : ""}>${o}</option>`).join("")}</select>`;
+  }
   async function renderAdminProductsTable() {
     const body = $("#adminProductsBody");
     const empty = $("#adminProductsEmpty");
@@ -3089,15 +3106,32 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
               <label class="btn btn-ghost-tiny admin-photo-upload-label">Change<input type="file" accept="image/*" data-photo-for="${p.id}"></label>
             </div>
           </td>
-          <td class="product-name-cell">${escapeHtml(p.name)}</td>
+          <td><input class="product-edit-input product-name-input" type="text" value="${escapeHtml(p.name)}" data-field="name" data-id="${p.id}" aria-label="Name"></td>
+          <td>${selectHtml("type", p.id, p.type, PRODUCT_TYPES, "Category")}</td>
+          <td>${selectHtml("gender", p.id, p.gender, PRODUCT_GENDERS, "Gender")}</td>
+          <td>${selectHtml("section", p.id, p.section, PRODUCT_SECTIONS, "Section")}</td>
           <td><input class="product-edit-input" type="number" min="0" step="500" value="${p.price}" data-field="price" data-id="${p.id}" aria-label="Price for ${escapeHtml(p.name)}"></td>
           <td><input class="product-edit-input" type="number" min="0" step="1" value="${p.stock_count}" data-field="stock_count" data-id="${p.id}" aria-label="Stock for ${escapeHtml(p.name)}"></td>
           <td><input class="product-active-toggle" type="checkbox" ${p.active ? "checked" : ""} data-field="active" data-id="${p.id}" aria-label="Visible on store: ${escapeHtml(p.name)}"></td>
+          <td><button class="admin-icon-btn" data-remove-product="${p.id}" aria-label="Remove ${escapeHtml(p.name)}">🗑</button></td>
         </tr>`).join("");
     } catch (e) {
       empty.hidden = false;
       empty.textContent = "Couldn't load products. Check your connection and try again.";
     }
+  }
+  async function addNewProduct() {
+    if (!db) return;
+    const id = "p-" + Date.now();
+    const { error } = await db.from("products").insert({
+      id, name: "New Product", type: "top", gender: "unisex", section: "new",
+      price: 0, stock_count: 0, active: false, description: "", rating: 4.8, reviews: 0
+    });
+    if (error) { showToast("Couldn't create new product — try again."); console.warn(error); return; }
+    showToast("New product added below — fill in its details.");
+    await renderAdminProductsTable();
+    const nameInput = $(`tr[data-product="${id}"] .product-name-input`);
+    if (nameInput) { nameInput.focus(); nameInput.select(); }
   }
   async function uploadProductPhoto(productId, file) {
     if (!db) return;
@@ -3121,6 +3155,7 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
     }
   }
   function wireAdminProductEdits() {
+    const NUMERIC_FIELDS = ["price", "stock_count"];
     $("#adminProductsBody").addEventListener("change", async (e) => {
       const fileInput = e.target.closest("[data-photo-for]");
       if (fileInput) {
@@ -3132,8 +3167,15 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
       if (!el || !db) return;
       const id = el.dataset.id;
       const field = el.dataset.field;
-      const value = field === "active" ? el.checked : Number(el.value);
-      if (field !== "active" && (isNaN(value) || value < 0)) return;
+      let value;
+      if (field === "active") value = el.checked;
+      else if (NUMERIC_FIELDS.indexOf(field) !== -1) {
+        value = Number(el.value);
+        if (isNaN(value) || value < 0) return;
+      } else {
+        value = el.value.trim();
+        if (field === "name" && !value) { showToast("Name can't be empty."); renderAdminProductsTable(); return; }
+      }
       const { error } = await db.from("products").update({ [field]: value }).eq("id", id);
       if (error) {
         console.warn("Could not save product change:", error);
@@ -3143,6 +3185,19 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
         setTimeout(() => el.classList.remove("saved"), 1200);
       }
     });
+    $("#adminProductsBody").addEventListener("click", async (e) => {
+      const removeBtn = e.target.closest("[data-remove-product]");
+      if (!removeBtn || !db) return;
+      const id = removeBtn.dataset.removeProduct;
+      const row = removeBtn.closest("tr");
+      const name = row ? row.querySelector(".product-name-input").value : "this product";
+      if (!window.confirm(`Remove "${name}" from your catalog? This can't be undone.`)) return;
+      const { error } = await db.from("products").delete().eq("id", id);
+      if (error) { showToast("Couldn't remove that product — try again."); console.warn(error); return; }
+      showToast("Product removed.");
+      renderAdminProductsTable();
+    });
+    $("#adminAddProduct").addEventListener("click", addNewProduct);
   }
   async function loadChatbotTraining() {
     const el = $("#chatbotTrainingInput");
