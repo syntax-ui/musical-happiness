@@ -2712,6 +2712,19 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
       const submitBtn = $("#checkoutForm button[type='submit'], #checkoutForm .btn-primary");
       if (db) {
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Placing order…"; }
+        // ========== VALIDATE PHONE WITH ABSTRACT API ==========
+const phoneValidationResponse = await fetch(
+  `https://phoneintelligence.abstractapi.com/v1?api_key=bd19f40681824c17a7f4d20737fd3ed3&phone=${encodeURIComponent(phone)}`
+);
+
+const phoneData = await phoneValidationResponse.json();
+
+if (!phoneData.phone_validation || !phoneData.phone_validation.is_valid) {
+  if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Place Order"; }
+  document.getElementById("checkoutError").textContent = "Please enter a valid phone number.";
+  return; // Stop form submission
+}
+// ========== PHONE IS VALID, PROCEED ==========
         try {
           const { data, error } = await db.rpc("place_order", {
             p_order_number: order.orderNumber, p_name: name, p_phone: phone, p_email: email || null,
