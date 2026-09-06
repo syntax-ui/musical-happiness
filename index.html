@@ -2952,7 +2952,9 @@ if (loginBtn && db) {
   loginBtn.addEventListener("click", async () => {
     const { data, error } = await db.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: 'https://dannystore-ng.netlify.app/' }
+      options: { 
+        redirectTo: window.location.origin  // Use current domain
+      }
     });
     
     if (error) {
@@ -2960,7 +2962,7 @@ if (loginBtn && db) {
       showToast('Login failed. Please try again.');
     }
   });
-  }
+      }
   /* ---------------------------------------------------
      GLOBAL DELEGATED CLICKS (product cards rendered anywhere)
   --------------------------------------------------- */
