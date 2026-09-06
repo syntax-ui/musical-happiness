@@ -200,7 +200,11 @@ em { font-style: italic; }
 [data-theme="dark"] .icon-moon { display: block; }
 .nav-toggle { display: flex; flex-direction: column; gap: 5px; }
 .nav-toggle .bar { width: 20px; height: 2px; background: currentColor; border-radius: 2px; }
+#loginToggle { display: none; }
 
+@media (min-width: 768px) {
+  #loginToggle { display: flex; }
+  }
 /* ---------- Overlay scrim (shared) ---------- */
 .overlay-scrim { position: fixed; inset: 0; background: rgba(12,12,18,0.5); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); z-index: 160; opacity: 0; visibility: hidden; transition: opacity 0.3s var(--ease), visibility 0.3s var(--ease); }
 .overlay-scrim.show { opacity: 1; visibility: visible; }
