@@ -723,6 +723,9 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
     </nav>
 
     <div class="header-actions">
+      <button class="icon-btn" id="loginToggle" aria-label="Login">
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
       <button class="icon-btn" id="searchToggle" aria-label="Search" aria-controls="searchOverlay">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
@@ -1529,7 +1532,28 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
   const supabaseReady = SUPABASE_URL.indexOf("YOUR_SUPABASE") !== 0 && SUPABASE_ANON_KEY.indexOf("YOUR_SUPABASE") !== 0;
   const db = supabaseReady && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
   if (!supabaseReady) console.warn("Supabase isn't configured yet — running in offline/demo mode. Add SUPABASE_URL and SUPABASE_ANON_KEY at the top of script.js.");
+// ========== GOOGLE AUTH SETUP ==========
+async function initAuth() {
+  // Check if user is already logged in
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    console.log('User logged in:', session.user.email);
+    loadUserBag(session.user.id);
+  }
+}
 
+// Listen for auth changes
+if (db) {
+  db.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      console.log('User logged in:', session.user.email);
+      loadUserBag(session.user.id);
+    } else {
+      console.log('User logged out');
+    }
+  });
+  initAuth();
+}
   /* ---------------------------------------------------
      STORAGE HELPER
      Uses real sessionStorage now that this runs on an actual
@@ -2922,7 +2946,21 @@ if (!phoneData.phone_validation || !phoneData.phone_validation.is_valid) {
     function observeAll() { $$(".reveal:not(.is-visible)").forEach((el) => io.observe(el)); }
     observeAll();
   }
-
+// ========== LOGIN BUTTON HANDLER ==========
+const loginBtn = $("#loginToggle");
+if (loginBtn && db) {
+  loginBtn.addEventListener("click", async () => {
+    const { data, error } = await db.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: 'https://dannystore-ng.netlify.app/' }
+    });
+    
+    if (error) {
+      console.error('Login error:', error.message);
+      showToast('Login failed. Please try again.');
+    }
+  });
+  }
   /* ---------------------------------------------------
      GLOBAL DELEGATED CLICKS (product cards rendered anywhere)
   --------------------------------------------------- */
