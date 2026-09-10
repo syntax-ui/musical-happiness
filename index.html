@@ -2223,6 +2223,7 @@ async function loadUserBag(userId) {
     updateBadges();
     renderCartUI();
     renderBudget();
+    saveBagToSupabase();
     if (!silent) showToast("Added to your bag.");
   }
   function removeFromCart(id) {
@@ -2230,6 +2231,7 @@ async function loadUserBag(userId) {
     updateBadges();
     renderCartUI();
     renderBudget();
+    saveBagToSupabase();
   }
   function changeQty(id, delta) {
     const entry = state.cart.find((c) => c.id === id);
