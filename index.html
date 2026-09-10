@@ -1558,6 +1558,48 @@ if (db) {
   });
   initAuth();
 }
+  // ========== SAVE BAG TO SUPABASE ==========
+async function saveBagToSupabase() {
+  if (!db) return;
+  
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) return; // Not logged in
+  
+  const bagItems = state.cart; // Your cart array
+  
+  const { error } = await db
+    .from('user_bags')
+    .upsert({
+      user_id: session.user.id,
+      items: bagItems,
+      updated_at: new Date().toISOString()
+    });
+  
+  if (error) console.error('Error saving bag:', error);
+}
+
+// ========== LOAD BAG FROM SUPABASE ==========
+async function loadUserBag(userId) {
+  if (!db) return;
+  
+  const { data, error } = await db
+    .from('user_bags')
+    .select('items')
+    .eq('user_id', userId)
+    .single();
+  
+  if (error) {
+    console.log('No saved bag found');
+    return;
+  }
+  
+  if (data && data.items) {
+    state.cart = data.items;
+    updateCartUI(); // Refresh the cart display
+    showToast('Bag restored!');
+  }
+    }
+  
   /* ---------------------------------------------------
      STORAGE HELPER
      Uses real sessionStorage now that this runs on an actual
