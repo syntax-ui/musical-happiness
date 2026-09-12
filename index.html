@@ -902,6 +902,18 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
     </form>
   </div>
 </div>
+  <!-- ========== LOGIN CONFIRMATION MODAL ========== -->
+<div class="modal-overlay" id="loginOverlay"></div>
+<div class="confirm-modal" id="loginModal" role="dialog" aria-modal="true" aria-label="Login confirmed">
+  <span class="welcome-emoji">👋</span>
+  <h3>Welcome to Daniel Threads!</h3>
+  <p id="loginUserEmail">Logged in as: email@example.com</p>
+  <div id="loginUserInfo" style="text-align: center; margin: 16px 0;">
+    <img id="loginUserAvatar" src="" alt="Profile" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 8px;">
+    <p id="loginUserName" style="font-weight: 600;"></p>
+  </div>
+  <button class="btn btn-primary btn-block" id="loginConfirmBtn">Continue Shopping</button>
+</div>
 
 <!-- ========== ORDER CONFIRMATION MODAL ========== -->
 <div class="modal-overlay" id="confirmOverlay"></div>
