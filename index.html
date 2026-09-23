@@ -1548,27 +1548,83 @@ body.admin-mode .promo-bar, body.admin-mode .site-header, body.admin-mode .scrol
   const supabaseReady = SUPABASE_URL.indexOf("YOUR_SUPABASE") !== 0 && SUPABASE_ANON_KEY.indexOf("YOUR_SUPABASE") !== 0;
   const db = supabaseReady && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
   if (!supabaseReady) console.warn("Supabase isn't configured yet — running in offline/demo mode. Add SUPABASE_URL and SUPABASE_ANON_KEY at the top of script.js.");
-// ========== GOOGLE AUTH SETUP ==========
-async function initAuth() {
-  // Check if user is already logged in
-  const { data: { session } } = await db.auth.getSession();
-  if (session) {
-    console.log('User logged in:', session.user.email);
-    loadUserBag(session.user.id);
-  }
-}
-
-// Listen for auth changes
+  // ========== GOOGLE AUTH SETUP ==========
 if (db) {
   db.auth.onAuthStateChange((event, session) => {
     if (session) {
       console.log('User logged in:', session.user.email);
+      showLoginConfirmation(session.user);
       loadUserBag(session.user.id);
     } else {
       console.log('User logged out');
     }
   });
   initAuth();
+}
+
+// ========== SHOW LOGIN CONFIRMATION ==========
+function showLoginConfirmation(user) {
+  const modal = document.getElementById('loginModal');
+  const overlay = document.getElementById('loginOverlay');
+  const emailEl = document.getElementById('loginUserEmail');
+  const nameEl = document.getElementById('loginUserName');
+  const avatarEl = document.getElementById('loginUserAvatar');
+  
+  emailEl.textContent = `Logged in as: ${user.email}`;
+  nameEl.textContent = user.user_metadata?.full_name || 'Guest';
+  avatarEl.src = user.user_metadata?.avatar_url || '';
+  
+  overlay.classList.add('show');
+  modal.classList.add('open');
+  
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    modal.classList.remove('open');
+  }, 3000);
+  
+  document.getElementById('loginConfirmBtn').onclick = () => {
+    overlay.classList.remove('show');
+    modal.classList.remove('open');
+  };
+}
+ // ========== GOOGLE AUTH SETUP ==========
+if (db) {
+  db.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      console.log('User logged in:', session.user.email);
+      showLoginConfirmation(session.user);
+      loadUserBag(session.user.id);
+    } else {
+      console.log('User logged out');
+    }
+  });
+  initAuth();
+}
+
+// ========== SHOW LOGIN CONFIRMATION ==========
+function showLoginConfirmation(user) {
+  const modal = document.getElementById('loginModal');
+  const overlay = document.getElementById('loginOverlay');
+  const emailEl = document.getElementById('loginUserEmail');
+  const nameEl = document.getElementById('loginUserName');
+  const avatarEl = document.getElementById('loginUserAvatar');
+  
+  emailEl.textContent = `Logged in as: ${user.email}`;
+  nameEl.textContent = user.user_metadata?.full_name || 'Guest';
+  avatarEl.src = user.user_metadata?.avatar_url || '';
+  
+  overlay.classList.add('show');
+  modal.classList.add('open');
+  
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    modal.classList.remove('open');
+  }, 3000);
+  
+  document.getElementById('loginConfirmBtn').onclick = () => {
+    overlay.classList.remove('show');
+    modal.classList.remove('open');
+  };
 }
   // ========== SAVE BAG TO SUPABASE ==========
 async function saveBagToSupabase() {
