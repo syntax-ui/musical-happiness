@@ -1553,7 +1553,6 @@ if (db) {
   db.auth.onAuthStateChange((event, session) => {
     if (session) {
       console.log('User logged in:', session.user.email);
-      showLoginConfirmation(session.user);
       loadUserBag(session.user.id);
     } else {
       console.log('User logged out');
