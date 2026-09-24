@@ -3486,21 +3486,32 @@ if (loginBtn && db) {
       }
     }
   }
-
-  /* ---------------------------------------------------
-     PAGE LOADER
-  --------------------------------------------------- */
+  // ========== PAGE LOADER ==========
   function wirePageLoader() {
-    const loader = $("#pageLoader");
-    const started = Date.now();
-    function hide() {
-      const elapsed = Date.now() - started;
-      setTimeout(() => loader.classList.add("hide"), Math.max(0, 500 - elapsed));
-    }
-    if (document.readyState === "complete") hide();
-    else window.addEventListener("load", hide);
-    setTimeout(hide, 4000);
+  const loader = $("#pageLoader");
+  if (!loader) return () => {};
+
+  const started = Date.now();
+  let hidden = false;
+
+  function hide() {
+    if (hidden) return;
+    hidden = true;
+
+    const elapsed = Date.now() - started;
+    setTimeout(() => loader.classList.add("hide"), Math.max(0, 500 - elapsed));
   }
+
+  if (document.readyState === "complete") {
+    hide();
+  } else {
+    window.addEventListener("load", hide, { once: true });
+  }
+
+  setTimeout(hide, 4000);
+
+  return hide;
+    }
 
   /* ---------------------------------------------------
      INIT
