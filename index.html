@@ -3511,19 +3511,30 @@ if (loginBtn && db) {
   setTimeout(hide, 4000);
 
   return hide;
-    }
+  }
+  
+  // ========== INITIALIZATION ==========
+async function init() {
+  const hidePageLoader = wirePageLoader();
 
-  /* ---------------------------------------------------
-     INIT
-  --------------------------------------------------- */
-  document.addEventListener("DOMContentLoaded", async () => {
-    try {
-      const savedCart = storage.get("cart");
-      if (savedCart) { const parsed = JSON.parse(savedCart); if (Array.isArray(parsed)) state.cart = parsed; }
-      const savedWishlist = storage.get("wishlist");
-      if (savedWishlist) { const parsed = JSON.parse(savedWishlist); if (Array.isArray(parsed)) state.wishlist = parsed; }
-    } catch (e) { console.warn("Could not restore saved cart/wishlist:", e); }
-    await loadProducts();
+  try {
+    const savedCart = storage.get("cart");
+    if (savedCart) { const parsed = JSON.parse(savedCart); if (Array.isArray(parsed)) state.cart = parsed; }
+    const savedWishlist = storage.get("wishlist");
+    if (savedWishlist) { const parsed = JSON.parse(savedWishlist); if (Array.isArray(parsed)) state.wishlist = parsed; }
+  } catch (e) { console.warn("Could not restore saved cart/wishlist:", e); }
+
+  try {
+    await Promise.race([
+      loadProducts(),
+      new Promise((resolve) => {
+        setTimeout(() => {
+          console.warn("Product loading timed out; using built-in catalog.");
+          resolve();
+        }, 8000);
+      })
+    ]);
+
     state.cart = state.cart.filter((c) => productById(c.id));
     state.wishlist = state.wishlist.filter((id) => productById(id));
     renderCuratedGrids();
@@ -3550,14 +3561,21 @@ if (loginBtn && db) {
     wireGlobalDelegation();
     wireAdmin();
     wireChatWidget();
-    wirePageLoader();
+
     window.addEventListener("hashchange", checkRoute);
     checkRoute();
     updateBadges();
     tickCountdowns();
     setInterval(tickCountdowns, 1000);
-  });
-})();
+  } catch (error) {
+    console.error("Site initialization failed:", error);
+  } finally {
+    hidePageLoader();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", init);
+    
 </script>
 </body>
 </html>
