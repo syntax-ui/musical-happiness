@@ -906,6 +906,7 @@ if (db) {
   db.auth.onAuthStateChange((event, session) => {
     if (session) {
       console.log('User logged in:', session.user.email);
+      showLoginConfirmation(session.user);
       loadUserBag(session.user.id);
     } else {
       console.log('User logged out');
@@ -913,7 +914,37 @@ if (db) {
   });
   initAuth();
 }
+
+  // ========== LOGIN CONFIRMATION ==========
+function showLoginConfirmation(user) {
+  const modal = document.getElementById('loginModal');
+  const overlay = document.getElementById('loginOverlay');
   
+  if (!modal || !overlay) return;
+  
+  const emailEl = document.getElementById('loginUserEmail');
+  const nameEl = document.getElementById('loginUserName');
+  const avatarEl = document.getElementById('loginUserAvatar');
+  
+  emailEl.textContent = `Logged in as: ${user.email}`;
+  nameEl.textContent = user.user_metadata?.full_name || 'Guest';
+  if (user.user_metadata?.avatar_url) {
+    avatarEl.src = user.user_metadata.avatar_url;
+  }
+  
+  overlay.classList.add('show');
+  modal.classList.add('open');
+  
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    modal.classList.remove('open');
+  }, 3000);
+  
+  document.getElementById('loginConfirmBtn').onclick = () => {
+    overlay.classList.remove('show');
+    modal.classList.remove('open');
+  };
+}
   // ========== SAVE BAG TO SUPABASE ==========
 async function saveBagToSupabase() {
   if (!db) return;
