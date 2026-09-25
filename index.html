@@ -167,7 +167,7 @@ em { font-style: italic; }
 .icon-btn svg { width: 20px; height: 20px; }
 
 /* ---------- Page loader ---------- */
-.page-loader { position: fixed; inset: 0; z-index: 999; background: var(--ink); display: flex; align-items: center; justify-content: center; gap: 14px; transition: opacity 0.6s var(--ease), visibility 0.6s var(--ease); }
+.page-loader { position: fixed; inset: 0; z-index: 999; background: var(--ink); display: flex; align-items: center; justify-content: center; gap: 14px; transition: opacity 0.6s var(--ease), visibility 0.6s var(--ease); }.page-loader { display: none; }
 .page-loader.hide { opacity: 0; visibility: hidden; pointer-events: none; }
 .loader-mark { font-family: var(--font-display); font-size: 1.8rem; color: var(--brass-light); letter-spacing: 0.08em; }
 .loader-ring { width: 22px; height: 22px; border: 2px solid rgba(217,189,130,0.25); border-top-color: var(--brass-light); border-radius: 50%; animation: spin 0.9s linear infinite; }
