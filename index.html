@@ -901,7 +901,16 @@
   const db = supabaseReady && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
   if (!supabaseReady) console.warn("Supabase isn't configured yet — running in offline/demo mode. Add SUPABASE_URL and SUPABASE_ANON_KEY at the top of script.js.");
   
- // ========== GOOGLE AUTH SETUP ==========
+// ========== GOOGLE AUTH SETUP ==========
+async function initAuth() {
+  if (!db) return;
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    console.log('User logged in:', session.user.email);
+    loadUserBag(session.user.id);
+  }
+}
+
 if (db) {
   db.auth.onAuthStateChange((event, session) => {
     if (session) {
@@ -913,7 +922,7 @@ if (db) {
     }
   });
   initAuth();
-}
+  }
 
   // ========== LOGIN CONFIRMATION ==========
 function showLoginConfirmation(user) {
