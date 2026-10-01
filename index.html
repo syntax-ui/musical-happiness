@@ -988,12 +988,16 @@ async function loadUserBag(userId) {
     console.log('No saved bag found');
     return;
   }
-  
   if (data && data.items) {
     state.cart = data.items;
-    updateCartUI(); // Refresh the cart display
+    updateCartUI();
     showToast('Bag restored!');
   }
+}  // ← ADD THIS CLOSING BRACE
+
+/* ---------------------------------------------------
+   STORAGE HELPER
+ 
     
   
   /* ---------------------------------------------------
