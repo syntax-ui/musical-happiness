@@ -2794,6 +2794,7 @@ if (loginBtn && db) {
           if (error) { errorEl.textContent = "Incorrect email or password."; return; }
           state.adminUnlocked = true;
           errorEl.textContent = "";
+          document.getElementById('adminDashboard').classList.add('admin-authenticated');
           showAdminDashboard();
         } catch (e) {
           submitBtn.disabled = false;
@@ -2806,6 +2807,7 @@ if (loginBtn && db) {
         if ($("#adminPinInput").value === ADMIN_PIN) {
           state.adminUnlocked = true;
           errorEl.textContent = "";
+          document.getElementById('adminDashboard').classList.add('admin-authenticated');
           showAdminDashboard();
         } else {
           errorEl.textContent = "Incorrect PIN. (Set up Supabase for real email/password login.)";
