@@ -2465,18 +2465,33 @@ if (loginBtn && db) {
   history.push({ role: "user", content: text });
   const typingEl = addTyping();
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer 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`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "anthropic/claude-3.5-sonnet",
-        messages: history.slice(-10),
-        max_tokens: 1024,
-      })
-    });
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages: history.slice(-10) })
+  });
+  typingEl.remove();
+  if (!res.ok) {
+    addBubble(`Error: ${res.status} ${res.statusText}`, "bot");
+    return;
+  }
+  let data;
+  try {
+    data = await res.json();
+  } catch (parseErr) {
+    addBubble("Sorry, I didn't understand that response. Try again.", "bot");
+    return;
+  }
+  if (data.error) {
+    addBubble(data.error || "Sorry, something went wrong. Try again.", "bot");
+    return;
+  }
+  addBubble(data.reply, "bot");
+  history.push({ role: "assistant", content: data.reply });
+} catch (e) {
+  typingEl.remove();
+  addBubble(`Network error: ${e.message}`, "bot");
+}
     typingEl.remove();
     if (!res.ok) {
       addBubble(`Error: ${res.status} ${res.statusText}`, "bot");
