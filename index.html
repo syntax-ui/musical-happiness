@@ -2461,61 +2461,71 @@ if (loginBtn && db) {
       }
     }
     async function sendMessage(text) {
-  addBubble(text, "user");
-  history.push({ role: "user", content: text });
-  const typingEl = addTyping();
-  try {
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages: history.slice(-10) })
-  });
-  typingEl.remove();
-  if (!res.ok) {
-    addBubble(`Error: ${res.status} ${res.statusText}`, "bot");
-    return;
-  }
-  let data;
-  try {
-    data = await res.json();
-  } catch (parseErr) {
-    addBubble("Sorry, I didn't understand that response. Try again.", "bot");
-    return;
-  }
-  if (data.error) {
-    addBubble(data.error || "Sorry, something went wrong. Try again.", "bot");
-    return;
-  }
-  addBubble(data.reply, "bot");
-  history.push({ role: "assistant", content: data.reply });
-} catch (e) {
-  typingEl.remove();
-  addBubble(`Network error: ${e.message}`, "bot");
+addBubble(text, "user");
+history.push({ role: "user", content: text });
+
+const typingEl = addTyping();
+
+try {
+const res = await fetch("/api/chat", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+messages: history.slice(-10)
+})
+});
+
+if (!res.ok) {
+  addBubble(`Error: ${res.status} ${res.statusText}`, "bot");
+  return;
 }
-    typingEl.remove();
-    if (!res.ok) {
-      addBubble(`Error: ${res.status} ${res.statusText}`, "bot");
-      return;
-    }
-    let data;
-    try {
-      data = await res.json();
-    } catch (parseErr) {
-      addBubble("Sorry, I didn't understand that response. Try again.", "bot");
-      return;
-    }
-    if (data.error) {
-      addBubble(data.error.message || "Sorry, something went wrong. Try again.", "bot");
-      return;
-    }
-    const reply = data.choices[0].message.content;
-    addBubble(reply, "bot");
-    history.push({ role: "assistant", content: reply });
-  } catch (e) {
-    typingEl.remove();
-    addBubble(`Network error: ${e.message}`, "bot");
+
+let data;
+
+try {
+  data = await res.json();
+} catch (parseErr) {
+  addBubble(
+    "Sorry, I didn't understand that response. Try again.",
+    "bot"
+  );
+  return;
+}
+
+if (data.error) {
+  const errorMessage =
+    typeof data.error === "string"
+      ? data.error
+      : data.error.message || "Sorry, something went wrong. Try again.";
+
+  addBubble(errorMessage, "bot");
+  return;
+}
+
+if (typeof data.reply !== "string") {
+  addBubble(
+    "Sorry, the server returned an unexpected response.",
+    "bot"
+  );
+  return;
+}
+
+addBubble(data.reply, "bot");
+
+history.push({
+  role: "assistant",
+  content: data.reply
+});
+
+} catch (e) {
+addBubble("Network error: ${e.message}", "bot");
+
+} finally {
+typingEl.remove();
+}
   }
- }
     function closeChat() {
       panel.hidden = true;
       toggle.setAttribute("aria-expanded", "false");
