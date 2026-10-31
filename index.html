@@ -1147,9 +1147,7 @@ async function loadUserBag(userId) {
   function effectivePrice(p) {
     return p.sale && Date.now() < p.sale.endsAt ? p.sale.price : p.price;
   }
-  function isOnSale(p) {
-    return !!(p.sale && Date.now() < p.sale.endsAt);
-  }
+
   function productById(id) {
     return PRODUCTS.find((p) => p.id === id);
   }
