@@ -65,3 +65,6 @@ const NOW = Date.now();
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { PRODUCTS, NOW, HOUR, ADMIN_PIN };
 }
+function isOnSale(p) {
+    return !!(p.sale && Date.now() < p.sale.endsAt);
+}
