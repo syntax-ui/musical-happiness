@@ -2234,10 +2234,12 @@ messages: history.slice(-10)
 });
 
 if (!res.ok) {
-  addBubble(`Error: ${res.status} ${res.statusText}`, "bot");
+  let errData = {};
+  try { errData = await res.json(); } catch (e) {}
+  addBubble(errData.error || `Error ${res.status}. Please try again.`, "bot");
   return;
-}
-
+  }
+  
 let data;
 
 try {
