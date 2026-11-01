@@ -1144,9 +1144,7 @@ async function loadUserBag(userId) {
   }
   const NOT_CARRIED_TERMS = ["wedding dress", "wedding gown", "bridal dress", "bridal gown", "bridal wear", "tuxedo"];
 
-  function effectivePrice(p) {
-    return p.sale && Date.now() < p.sale.endsAt ? p.sale.price : p.price;
-  }
+  
 
   function productById(id) {
     return PRODUCTS.find((p) => p.id === id);
