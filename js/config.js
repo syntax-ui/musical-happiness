@@ -86,3 +86,8 @@ function effectivePrice(p) {
     builder: { gender: "all", slot: "top", selections: {} },
     testimonialIndex: 0
   };
+function imgUrl(id, w) {
+    if (!id) return "";
+    if (id.indexOf("http") === 0) return id; // real uploaded photo — already a full URL
+    return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
+}
