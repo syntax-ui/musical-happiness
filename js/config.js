@@ -68,3 +68,6 @@ if (typeof module !== 'undefined' && module.exports) {
 function isOnSale(p) {
     return !!(p.sale && Date.now() < p.sale.endsAt);
 }
+function effectivePrice(p) {
+    return p.sale && Date.now() < p.sale.endsAt ? p.sale.price : p.price;
+}
