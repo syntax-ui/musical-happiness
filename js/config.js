@@ -71,3 +71,18 @@ function isOnSale(p) {
 function effectivePrice(p) {
     return p.sale && Date.now() < p.sale.endsAt ? p.sale.price : p.price;
 }
+  /* ---------------------------------------------------
+     APP STATE
+  --------------------------------------------------- */
+  const state = {
+    cart: [], // { id, qty }
+    wishlist: [], // ids
+    budget: null,
+    theme: "light",
+    orderSeq: 0,
+    orders: [],
+    adminUnlocked: false,
+    shopAll: { gender: "all", type: "all", priceMin: null, priceMax: null, sort: "newest", visibleCount: 9 },
+    builder: { gender: "all", slot: "top", selections: {} },
+    testimonialIndex: 0
+  };
