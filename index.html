@@ -1159,24 +1159,6 @@ async function loadUserBag(userId) {
   ];
 
   /* ---------------------------------------------------
-     APP STATE
-  --------------------------------------------------- */
-  const state = {
-    cart: [], // { id, qty }
-    wishlist: [], // ids
-    budget: null,
-    theme: "light",
-    orderSeq: 0,
-    orders: [],
-    adminUnlocked: false,
-    shopAll: { gender: "all", type: "all", priceMin: null, priceMax: null, sort: "newest", visibleCount: 9 },
-    builder: { gender: "all", slot: "top", selections: {} },
-    testimonialIndex: 0
-  };
-
-  
-
-  /* ---------------------------------------------------
      SHOP ALL — filter, sort, price range, load more
   --------------------------------------------------- */
   function genderMatches(productGender, filterGender) {
