@@ -2,8 +2,11 @@ function renderProductCard(p) {
     const onSale = isOnSale(p);
     const price = effectivePrice(p);
     const wished = state.wishlist.includes(p.id);
-    const img0 = imgUrl(p.imgIds[0], 700);
-    const img1 = imgUrl(p.imgIds[1] || p.imgIds[0], 700);
+        // Use the photo uploaded in admin if there is one; otherwise the built-in stock photo
+    const ids = p.imgIds || [];
+    const uploaded = p.image_id && /^https?:\/\//.test(p.image_id) ? p.image_id : null;
+    const img0 = uploaded || imgUrl(ids[0], 700);
+    const img1 = uploaded || imgUrl(ids[1] || ids[0], 700);
     return `
     <article class="product-card" data-id="${p.id}">
       <div class="product-media img-shimmer" data-quickview="${p.id}">
