@@ -1,6 +1,26 @@
 // ========== DANIEL THREADS CHATBOT API ==========
-// Runs on Vercel's server. The OpenRouter key is read from the
-// OPENROUTER_API_KEY environment variable, never from this file.
+// Runs on Vercel's server. Reads the OpenRouter key from the
+// OPENROUTER_API_KEY environment variable, and the store details
+// from Supabase. Neither secret lives in this file.
+
+const SUPABASE_URL = "https://ausbxxfnudnzwgpsbffg.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_WvWVOGkFWygmCfseIQyFIg_kxQ56-id";
+
+const BASE_PROMPT = "You are the shop assistant for Daniel Threads, a luxury fashion store in Lagos, Nigeria. Be warm, concise, and honest. Delivery is usually within 48 hours in Lagos. Payment: bank transfer, cash on delivery, or card at pickup. If you don't know something, such as stock, exact returns policy, or order status, say so and suggest contacting the store.";
+
+async function fetchBusinessInfo() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/chatbot_settings?select=business_info&id=eq.1`,
+      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    if (!res.ok) return "";
+    const rows = await res.json();
+    return (rows && rows[0] && rows[0].business_info) || "";
+  } catch (e) {
+    return "";
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -17,6 +37,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "No messages sent." });
   }
 
+  const businessInfo = await fetchBusinessInfo();
+  const systemPrompt = businessInfo
+    ? `${BASE_PROMPT}\n\nAdditional details from the store owner. Treat these as accurate and current:\n${businessInfo}`
+    : BASE_PROMPT;
+
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -28,13 +53,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "openrouter/free",
-        messages: [
-          {
-            role: "system",
-            content: "You are the shop assistant for Daniel Threads, a luxury fashion store in Lagos, Nigeria. Be warm, concise, and honest. Delivery is usually within 48 hours in Lagos. Payment: bank transfer, cash on delivery, or card at pickup. If you don't know something, such as stock, exact returns policy, or order status, say so and suggest contacting the store.",
-          },
-          ...messages.slice(-10),
-        ],
+        messages: [{ role: "system", content: systemPrompt }, ...messages.slice(-10)],
         max_tokens: 300,
       }),
     });
