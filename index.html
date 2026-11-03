@@ -872,6 +872,7 @@
 <script src="js/config.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/productcard.js"></script>
+<script src="js/admin.js"></script>
 <script>
 
 /* =========================================================
@@ -2597,73 +2598,7 @@ typingEl.remove();
     $("#adminPinInput").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#adminPinSubmit").click(); });
     $("#adminSearch").addEventListener("input", debounce(renderAdminTable, 150));
     $("#adminStatusFilter").addEventListener("change", renderAdminTable);
-    $("#adminTableBody").addEventListener("click", (e) => {
-      const view = e.target.closest("[data-view]");
-      const del = e.target.closest("[data-delete]");
-      if (view) openAdminDetail(view.dataset.view);
-      if (del) { pendingDelete = del.dataset.delete; $("#adminConfirmOverlay").classList.add("show"); $("#adminConfirmDelete").classList.add("open"); adminConfirmTrap.activate(); }
-    });
-    $("#adminTableBody").addEventListener("change", async (e) => {
-      const sel = e.target.closest("[data-status-for]");
-      if (sel) {
-        const o = findOrder(sel.dataset.statusFor);
-        if (o) o.status = sel.value;
-        if (db) {
-          const { error } = await db.from("orders").update({ status: sel.value }).eq("order_number", sel.dataset.statusFor);
-          if (error) console.warn("Could not save status to Supabase:", error);
-        }
-      }
-    });
-    let pendingDelete = null;
-    $("#adminConfirmYes").addEventListener("click", async () => {
-      if (db) {
-        const { error } = await db.from("orders").delete().eq("order_number", pendingDelete);
-        if (error) console.warn("Could not delete order in Supabase:", error);
-      }
-      state.orders = state.orders.filter((o) => o.orderNumber !== pendingDelete);
-      $("#adminConfirmOverlay").classList.remove("show");
-      $("#adminConfirmDelete").classList.remove("open");
-      adminConfirmTrap.deactivate();
-      closeAdminDetail();
-      renderAdminTable();
-    });
-    $("#adminConfirmNo").addEventListener("click", () => {
-      $("#adminConfirmOverlay").classList.remove("show");
-      $("#adminConfirmDelete").classList.remove("open");
-      adminConfirmTrap.deactivate();
-    });
-    $("#adminDetailClose").addEventListener("click", closeAdminDetail);
-    $("#adminDetailOverlay").addEventListener("click", closeAdminDetail);
-  }
-  function showAdminGate() {
-    $("#adminGate").hidden = false;
-    $("#adminDashboard").hidden = true;
-  }
-  function showAdminDashboard() {
-    $("#adminGate").hidden = true;
-    $("#adminDashboard").hidden = false;
-    renderAdminTable();
-  }
-  function checkRoute() {
-    const onAdmin = location.hash === "#admin";
-    document.body.classList.toggle("admin-mode", onAdmin);
-    $("#adminRoot").hidden = !onAdmin;
-    if (onAdmin) {
-      ["welcomeOverlay", "exitOverlay", "checkoutOverlay", "confirmOverlay", "searchOverlay", "quickViewOverlay", "scrim"].forEach((id) => { const el = document.getElementById(id); if (el) { el.classList.remove("show"); el.classList.remove("open"); } });
-      ["welcomeModal", "exitModal", "checkoutModal", "confirmModal", "quickViewModal", "cartDrawer", "mobileNav"].forEach((id) => { const el = document.getElementById(id); if (el) el.classList.remove("open"); });
-      if ($("#chatPanel")) { $("#chatPanel").hidden = true; $("#chatToggle").setAttribute("aria-expanded", "false"); }
-      window.scrollTo(0, 0);
-      if (state.adminUnlocked) { showAdminDashboard(); return; }
-      if (db) {
-        db.auth.getSession().then(({ data }) => {
-          if (data && data.session) { state.adminUnlocked = true; showAdminDashboard(); }
-          else showAdminGate();
-        });
-      } else {
-        showAdminGate();
-      }
-    }
-  }
+
   // ========== PAGE LOADER ==========
   function wirePageLoader() {
   const loader = $("#pageLoader");
