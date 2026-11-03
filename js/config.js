@@ -91,3 +91,16 @@ function imgUrl(id, w) {
     if (id.indexOf("http") === 0) return id; // real uploaded photo — already a full URL
     return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
 }
+  /* ---------------------------------------------------
+     SUPABASE CONFIG
+     Fill these in from: Supabase dashboard → Project Settings → Data API
+     Until both are filled in, the site falls back to running fully
+     offline (same behavior as before) so it never breaks in the
+     meantime — you'll see a console note, not a crash.
+  --------------------------------------------------- */
+  const SUPABASE_URL = "https://ausbxxfnudnzwgpsbffg.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_WvWVOGkFWygmCfseIQyFIg_kxQ56-id";
+  const supabaseReady = SUPABASE_URL.indexOf("YOUR_SUPABASE") !== 0 && SUPABASE_ANON_KEY.indexOf("YOUR_SUPABASE") !== 0;
+  const db = supabaseReady && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+  if (!supabaseReady) console.warn("Supabase isn't configured yet — running in offline/demo mode. Add SUPABASE_URL and SUPABASE_ANON_KEY at the top of script.js.");
+  
